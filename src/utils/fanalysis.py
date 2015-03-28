@@ -27,71 +27,13 @@ dograph_default = False #Doesn't graph the output by default (NOT IMPLEMENTED)
 graphtype_default = "bar" #Uses a bar graph by default (NOT IMPLEMENTED)
 showmax_default = 5 #The highest number of occurances per n-gram to show in display
 
-shortopt = "u:gt:s:i:"
-longopt = ["up-to=", "graph", "graph-type=", "show-max=", "input-file="]
+shortopt = "u:gs:i:"
+longopt = ["up-to=", "graph", "show-max=", "input-file="]
 
-sizes = {1:"mono", 2:"bi", 3:"tri"}
+sizes = {1:"mono", 2:"bi", 3:"tri"} #Most common analysis sizes
 
-def display(result_dict, size, showmax):
-    """
-Display the results of the frequency analysis in a text, non-graph format
-    """
-    if size in sizes: title = sizes[size] + "gram"
-    else: title = str(size) + "-gram"
-    
-    sorted_list = [x for x in result_dict.iteritems()] #Create a list of tuples (Easier to manipulate)
-    sorted_list.sort(key=lambda x: x[0])
-    sorted_list.sort(key=lambda x: x[1])
-    sorted_list.reverse()
-    
-    print("")
-    print("Results of the %s analysis:" % title)
-    for i in range(0, min(len(sorted_list), showmax)):
-        print(sorted_list[i][0] + ": " + str(sorted_list[i][1]) + " Occurrences")
-    #End for
-
-    print("...")
-    for i in range(len(sorted_list) - showmax, len(sorted_list)):
-        print(sorted_list[i][0] + ": " + str(sorted_list[i][1]) + " Occurrences")
-    #End for
-
-    print("")
-    print("-"*50)
-#End def
-
-def graph(result_dict, showmax):
-    """
-Display the results of the frequency analysis in a graph format
-    """
-    size = len(result_dict.keys()[0])
-    if size in sizes: title = sizes[size] + "gram"
-    else: title = str(size) + "-gram"
-    
-    sorted_list = [x for x in result_dict.iteritems()]
-    sorted_list.sort(key=lambda x: x[0])
-    sorted_list.reverse()
-    sorted_list.sort(key=lambda x: x[1])
-    sorted_list.reverse()
-    
-    divisor = math.ceil(float(sorted_list[0][1]) / 25)
-    scaled_list = []
-    for k, v in sorted_list:
-        scaled_list.append(int(math.ceil(float(v) / divisor)))
-    #End for
-    
-    print("")
-    print("   Results of the %s analysis" % title)
-    for i in range(0, min(len(sorted_list), showmax)):
-        print("%s  | " % sorted_list[i][0] + "[]" * scaled_list[i] + " Total: %d" % sorted_list[i][1])
-    #End for
-    
-    print("...")
-    for i in range(len(sorted_list) - showmax, len(sorted_list)):
-        print("%s  | " % sorted_list[i][0] + "[]" * scaled_list[i] + " Total: %d" % sorted_list[i][1])
-    #End for
-    print("")
-    print("-"*50)
-#End def
+text_format_str = "{0[0]}: {0[1]!s} Occurrences"
+graph_format_str = "{0[0]}  | {1}  Total: {0[1]!s}"
 
 def f(arg_list):
     """
@@ -109,17 +51,13 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
     
     upto = upto_default
     dograph = dograph_default
-    graphtype = graphtype_default
     showmax = showmax_default
-    inputfile_name = ""
     
     for o, a in opts:
         if o in ("-u", "--up-to"):
             upto = int(a)
         elif o in ("-g", "--graph"):
             dograph = True
-        elif o in ("-t", "--graph-type"):
-            graphtype = a
         elif o in ("-s", "--show-max"):
             showmax = int(a)
         elif o in ("-i", "--input-file"):
@@ -137,19 +75,22 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
     for word in words:
         word_stripped = ""
         for c in word:
-            if c.isalpha(): word_stripped += c
+            if c.isalpha():
+                word_stripped += c
+            else:
+                word_stripped += " " #If it's nonalpha, make it a space
         #End for
 
-        words_stripped.extend(word_stripped.lower().split())
+        words_stripped.extend(word_stripped.lower().split()) #Split the input stream into a list of alpha-only words
     #End for
     
     results = []
     for size in range(1, upto + 1):
-        result = {} if size != 1 else dict([(x, 0) for x in ascii_lowercase]) #Always include all monograms
+        result = {} if size != 1 else dict([(x, 0) for x in ascii_lowercase]) #Always include all possible monograms
         for word in words_stripped:
             if len(word) < size: continue
             
-            for word_slice in range(0, len(word) + 1 - size):
+            for word_slice in range(0, len(word) + 1 - size): #Analyze all possible n-length sequences in the word
                 characters =  word[word_slice: word_slice + size]
                 if characters not in result: result[characters] = 1
                 else: result[characters] += 1
@@ -159,17 +100,51 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
         results.append(result)
     #End for
     
-    if dograph is True:
-        for i in range(0, len(results)):
-            graph(results[i], showmax)
+    format_str = graph_format_str if dograph else text_format_str #Output format
+    print("-"*50)
+    
+    for i in range(0, len(results)): #Print the results
+        size = i + 1
+        
+        if size in sizes: 
+            title = sizes[size] + "gram"
+        else: 
+            title = str(size) + "-gram"
+        #End if
+        
+        sorted_list = [x for x in results[i].iteritems()] #Create a list of tuples (Easier to manipulate)
+        sorted_list.sort(key=lambda x: x[0]) #Sort it according to key
+        sorted_list.sort(key=lambda x: x[1]) #Then sort it according to value
+        sorted_list.reverse()
+        
+        divisor = math.ceil(float(sorted_list[0][1]) / 25)
+        scaled_list = []
+        for k, v in sorted_list:
+            scaled_list.append(int(math.ceil(float(v) / divisor))) #Otherwise, the resulting graph might take up multiple lines (25 is a guess for terminal width)
         #End for
-    else:
-        for i in range(0, len(results)):
-            display(results[i], i + 1, showmax)
+        
+        print("")
+        print("Results of the {} analysis".format(title))
+        print("")
+        
+        list_len = len(results[i])
+        
+        for i in range(0, min(list_len, showmax)) + [-1] + range(list_len - showmax, list_len): #First n results plus last n results
+            
+            if i == -1: #Break in between first and last
+                print("...")
+                continue
+            #End if
+            
+            print(format_str.format(sorted_list[i], "[]" * scaled_list[i]))
         #End for
-    #End if
+        
+        print("")
+        print("-"*50)
+    #End for
     
     return 0
 #End def
 
 #End fanalysis.py
+
