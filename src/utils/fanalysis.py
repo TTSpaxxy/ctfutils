@@ -22,9 +22,19 @@ import getopt
 import math
 from string import ascii_lowercase
 
+shortdesc = """
+fanalysis - Frequency Analysis
+    Analyze files of ciphertext for a frequency fingerprint
+"""
+longdesc = """Options:
+-u OR --up-to      | Analyze up to the specified phrase length (Defaults to 3)
+-g OR --graph      | Create a bar graph of the results
+-s OR --show-max   | Show the first and last n results (Defaults to 5)
+-i OR --input-file | Specify the input file to be analyzed (Required argument)
+"""
+
 upto_default = 3 #By default analyzes up to trigrams
-dograph_default = False #Doesn't graph the output by default (NOT IMPLEMENTED)
-graphtype_default = "bar" #Uses a bar graph by default (NOT IMPLEMENTED)
+dograph_default = False #Doesn't graph the output by default
 showmax_default = 5 #The highest number of occurances per n-gram to show in display
 
 shortopt = "u:gs:i:"
@@ -39,9 +49,6 @@ def f(arg_list):
     """
 Frequency analysis - Analyzes an input file of ciphertext and graphs the frequencies of different strings of characters
     """
-    global shortopt
-    global longopt
-    
     try:
         opts, args = getopt.getopt(arg_list, shortopt, longopt)
     except getopt.GetoptError as err:
@@ -52,6 +59,7 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
     upto = upto_default
     dograph = dograph_default
     showmax = showmax_default
+    inputfile_name = ""
     
     for o, a in opts:
         if o in ("-u", "--up-to"):

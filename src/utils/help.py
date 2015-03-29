@@ -16,20 +16,46 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-#Start __init__.py
+#Start help.py
 
-import os
+import getopt
 
+import utils
 import fanalysis
 import help
 
-__all__ = list(( mod[0:-3] for mod in os.listdir("utils/") if (mod[-3:] == ".py" and mod != "__init__.py") ))
+shortdesc = """help - Command help
+    List or get help for individual commands
+"""
 
-def run_mod(name, arg_list):
+longdesc = """Use 'help all' to get all available commands
+"""
+
+def f(arg_list):
     """
-Run individual commands with arguments
+Help - Displays help
     """
-    return eval("%s.f(arg_list)" % name)
+    help_name = arg_list[0]
+    
+    if help_name == "all":
+        print("-"*50)
+        for cmd in utils.__all__:
+            print("{0.shortdesc}".format(eval(cmd)))
+        #End for
+        
+        print("-"*50)
+        return 0
+    #End if
+    
+    if help_name not in utils.__all__:
+        print("Unrecognized command {}".format(help_name))
+        return 2 #Command was not found
+    #End if
+    
+    print("-"*50)
+    print("{0.shortdesc}".format(eval(help_name)))
+    print("{0.longdesc}".format(eval(help_name)))
+    print("-"*50)
+    
+    return 0
 #End def
-
-#End __init__.py
