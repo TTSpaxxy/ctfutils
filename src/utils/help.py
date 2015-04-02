@@ -11,7 +11,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -22,9 +22,10 @@ import getopt
 
 import utils
 import fanalysis
+import md5crack
 import help
 
-shortdesc = """help - Command help
+shortdesc = """help - Help
     List or get help for individual commands
 """
 
@@ -35,27 +36,31 @@ def f(arg_list):
     """
 Help - Displays help
     """
-    help_name = arg_list[0]
-    
+    if len(arg_list) == 0:
+        help_name = "all"
+    else:
+        help_name = arg_list[0]
+    #End if
+
     if help_name == "all":
         print("-"*50)
         for cmd in utils.__all__:
             print("{0.shortdesc}".format(eval(cmd)))
         #End for
-        
+
         print("-"*50)
         return 0
     #End if
-    
+
     if help_name not in utils.__all__:
         print("Unrecognized command {}".format(help_name))
         return 2 #Command was not found
     #End if
-    
+
     print("-"*50)
     print("{0.shortdesc}".format(eval(help_name)))
     print("{0.longdesc}".format(eval(help_name)))
     print("-"*50)
-    
+
     return 0
 #End def
