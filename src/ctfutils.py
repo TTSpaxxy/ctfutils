@@ -40,7 +40,7 @@ Interfaces with the utils package to actually run the command
         print("For a list of all available commands, use 'help all'")
         return 2 #Command was not found
     elif len(matches) > 1:
-        return 1 #Input could match different commands
+        return 1 #Ambiguous command
     #End if
 
     exit_code = utils.run_mod(matches[0], arg_list[1:])

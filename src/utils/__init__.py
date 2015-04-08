@@ -21,6 +21,7 @@
 import os
 import sys
 
+import b64
 import fanalysis
 import help
 import md5crack

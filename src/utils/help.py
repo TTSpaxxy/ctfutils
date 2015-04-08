@@ -21,13 +21,19 @@
 import getopt
 
 import utils
+import b64
 import fanalysis
 import md5crack
 import help
 
-shortdesc = """help - Help
+usage = "Usage: help <command name>"
+
+shortdesc = """
+help - Help
     List or get help for individual commands
-"""
+
+{}
+""".format(usage)
 
 longdesc = """Use 'help all' to get all available commands
 """
@@ -37,18 +43,33 @@ def f(arg_list):
 Help - Displays help
     """
     if len(arg_list) == 0:
-        help_name = "all"
+        help_name = "help"
     else:
-        help_name = arg_list[0]
+        command_name = arg_list[0]
+        matches = []
+        for module_name in utils.__all__:
+            if command_name == module_name[0:len(command_name) if len(command_name) <= len(module_name) else len(module_name)]: #So we don't have to type everything out
+                matches.append(module_name)
+            #End if
+        #End for
+
+        if len(matches) == 0:
+            print("For a list of all available commands, use 'help all'")
+            return 2 #Command was not found
+        elif len(matches) > 1:
+            return 1 #Ambiguous command
+        #End if
+
+        help_name = matches[0]
     #End if
 
     if help_name == "all":
         print("-"*50)
         for cmd in utils.__all__:
             print("{0.shortdesc}".format(eval(cmd)))
+            print("-"*50)
         #End for
 
-        print("-"*50)
         return 0
     #End if
 

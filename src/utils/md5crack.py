@@ -23,13 +23,14 @@ import hashlib
 import string
 import time
 
+usage = "Usage: md5crack [args] <input hash>"
+
 shortdesc = """
 md5crack - MD5 Hash Cracker
     Crack an MD5 hash with brute force or with rainbow tables
 
-Usage:
-md5crack [args] [input hash]
-"""
+{}
+""".format(usage)
 
 longdesc = """Options:
 -c OR --character-sets | Specify the character sets to be tried

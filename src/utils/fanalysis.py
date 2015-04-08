@@ -22,12 +22,15 @@ import getopt
 import math
 from string import ascii_lowercase
 
+usage = "Usage: fanalysis [args] <input file>"
+
 shortdesc = """
 fanalysis - Frequency Analysis
     Analyze files of ciphertext for a frequency fingerprint
 
-Usage: fanalysis [args] <input file>
-"""
+{}
+""".format(usage)
+
 longdesc = """Options:
 -u OR --up-to      | Analyze up to the specified phrase length (Defaults to 3)
                    |
