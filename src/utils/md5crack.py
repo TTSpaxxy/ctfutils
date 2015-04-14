@@ -50,9 +50,10 @@ charactersets_all = "aAds"
 charactersets_default = "aAd"
 keylen_default = 4
 showprogress_default = False
+findmax_default = 0 #Find all
 
-shortopt = "c:l:s"
-longopt = ["character-sets=", "key-len=", "show-progress"]
+shortopt = "c:l:sf:"
+longopt = ["character-sets=", "key-len=", "show-progress", "find-max="]
 
 def f(arg_list):
     """
@@ -68,6 +69,7 @@ Crack an MD5 hash with brute force or via rainbow tables
     charactersets = charactersets_default
     keylen = keylen_default
     showprogress = showprogress_default
+    findmax = findmax_default
 
     for o, a in opts:
         if o in ("-c", "--character-sets"):
@@ -76,6 +78,8 @@ Crack an MD5 hash with brute force or via rainbow tables
             keylen = int(a)
         elif o in ("-s", "--show-progress"):
             showprogress = True
+        elif o in ("-f", "--find-max"):
+            findmax = int(a)
         #End if
     #End for
 
@@ -119,6 +123,10 @@ Crack an MD5 hash with brute force or via rainbow tables
         if test_result == inputhash:
             print("Match found: {}".format(test_str))
             matches.append(test_str)
+            
+            if len(matches) == findmax:
+                break
+            #End if
         #End if
 
         if showprogress is True:
