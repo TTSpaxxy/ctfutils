@@ -23,7 +23,9 @@ import getopt
 import utils
 import b64
 import fanalysis
+import hex2text
 import md5crack
+import rsa
 import help
 
 usage = "Usage: help <command name>"
@@ -44,7 +46,7 @@ Help - Displays help
     """
     if len(arg_list) == 0:
         help_name = "help"
-    else:
+    elif arg_list[0] != "all":
         command_name = arg_list[0]
         matches = []
         for module_name in utils.__all__:
@@ -61,6 +63,8 @@ Help - Displays help
         #End if
 
         help_name = matches[0]
+    else:
+        help_name = "all"
     #End if
 
     if help_name == "all":

@@ -31,7 +31,7 @@ Interfaces with the utils package to actually run the command
     command_name = arg_list[0]
     matches = []
     for module_name in utils.__all__:
-        if command_name == module_name[0:len(command_name) if len(command_name) <= len(module_name) else len(module_name)]: #So we don't have to type everything out
+        if command_name == module_name[0:min(len(command_name), len(module_name))]: #So we don't have to type everything out
             matches.append(module_name)
         #End if
     #End for

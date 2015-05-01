@@ -77,7 +77,7 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
     #End for
 
     if len(args) != 1:
-        print("Usage: fanalysis [args] <input file>")
+        print(usage)
         return 6 #Wrong number of arguments
     else:
         inputfile_name = args[0]

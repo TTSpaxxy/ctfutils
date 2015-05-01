@@ -24,7 +24,9 @@ import sys
 import b64
 import fanalysis
 import help
+import hex2text
 import md5crack
+import rsa
 __all__ = list(( mod[0:-3] for mod in os.listdir(os.path.dirname(sys.argv[0]) + "/utils/") if (mod[-3:] == ".py" and mod != "__init__.py") ))
 
 def run_mod(name, arg_list):

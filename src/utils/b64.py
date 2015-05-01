@@ -22,7 +22,7 @@ import base64
 import getopt
 import string
 
-usage = "Usage: b64 [args] <encode/decode> <input file>"
+usage = "Usage: b64 <encode/decode> [args] <input file>"
 
 shortdesc = """
 b64 - Base 64
