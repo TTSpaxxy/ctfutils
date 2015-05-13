@@ -20,7 +20,7 @@
 
 import getopt
 import math
-from string import ascii_lowercase
+import string
 
 usage = "Usage: fanalysis [args] <input file>"
 
@@ -48,70 +48,51 @@ longopt = ["up-to=", "graph", "show-max="]
 
 sizes = {1:"mono", 2:"bi", 3:"tri"} #Most common analysis sizes
 
-text_format_str = "{0[0]}: {0[1]!s} Occurrences"
+text_format_str = "{0[0]}: {0[1]!s} Occurrence{2}"
 graph_format_str = "{0[0]}  | {1}  Total: {0[1]!s}"
 
-def f(arg_list):
+def analyze_ngram(words, size):
     """
-Frequency analysis - Analyzes an input file of ciphertext and graphs the frequencies of different strings of characters
+Get a dictionary of the occurrences of all possible n-grams in a list of words
     """
-    try:
-        opts, args = getopt.getopt(arg_list, shortopt, longopt)
-    except getopt.GetoptError as err:
-        print(str(err))
-        return 4 #Unrecognized argument
-    #End try
-
-    upto = upto_default
-    dograph = dograph_default
-    showmax = showmax_default
-
-    for o, a in opts:
-        if o in ("-u", "--up-to"):
-            upto = int(a)
-        elif o in ("-g", "--graph"):
-            dograph = True
-        elif o in ("-s", "--show-max"):
-            showmax = int(a)
-        #End if
-    #End for
-
-    if len(args) != 1:
-        print(usage)
-        return 6 #Wrong number of arguments
-    else:
-        inputfile_name = args[0]
-    #End if
-
-    words = " ".join(list(open(inputfile_name, "r"))).split()
-    words_stripped = []
+    
+    result = {} if size != 1 else dict([(x, 0) for x in string.ascii_lowercase]) #Always include all possible monograms
     for word in words:
-        word_stripped = ""
-        for c in word:
-            if c.isalpha():
-                word_stripped += c
-            else:
-                word_stripped += " " #If it's nonalpha, make it a space
+        if len(word) < size: continue
+        
+        for word_slice in range(0, len(word) + 1 - size): #Analyze all possible n-length sequences in the word
+            characters =  word[word_slice: word_slice + size]
+            if characters not in result: result[characters] = 1
+            else: result[characters] += 1
         #End for
-
-        words_stripped.extend(word_stripped.lower().split()) #Split the input stream into a list of alpha-only words
     #End for
 
+    return result
+#End def
+
+def analyze_upto(words, maxsize):
+    """
+Analyze all n-grams in a list of words up to the specified maximum size
+    """
+    
     results = []
-    for size in range(1, upto + 1):
-        result = {} if size != 1 else dict([(x, 0) for x in ascii_lowercase]) #Always include all possible monograms
-        for word in words_stripped:
-            if len(word) < size: continue
-
-            for word_slice in range(0, len(word) + 1 - size): #Analyze all possible n-length sequences in the word
-                characters =  word[word_slice: word_slice + size]
-                if characters not in result: result[characters] = 1
-                else: result[characters] += 1
-            #End for
-        #End for
-
-        results.append(result)
+    for i in range(0, maxsize):
+        results.append(analyze_ngram(words, i + 1))
     #End for
+
+    return results
+#End def
+
+def analyze_text(inputtext, upto = upto_default, dograph = dograph_default, showmax = showmax_default):
+    """
+Analyze a file of ciphertext and print the results
+    """
+    
+    #Strip words to letters in the standard alphabet
+    words = " ".join(inputtext.split())
+    words_stripped = words.translate(string.maketrans(string.punctuation + string.digits, ' ' * (len(string.punctuation) + len(string.digits)))).split()
+
+    results = analyze_upto(words_stripped, upto)
 
     format_str = graph_format_str if dograph else text_format_str #Output format
     print("-"*50)
@@ -149,12 +130,48 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
                 continue
             #End if
 
-            print(format_str.format(sorted_list[i], "[]" * scaled_list[i]))
+            print(format_str.format(sorted_list[i], "[]" * scaled_list[i], "" if scaled_list[i] == 1 else "s"))
         #End for
 
         print("")
         print("-"*50)
     #End for
+#End def
+
+def f(arg_list):
+    """
+Frequency analysis - Analyzes an input file of ciphertext and graphs the frequencies of different strings of characters
+    """
+    
+    try:
+        opts, args = getopt.getopt(arg_list, shortopt, longopt)
+    except getopt.GetoptError as err:
+        print(str(err))
+        return 4 #Unrecognized argument
+    #End try
+
+    upto = upto_default
+    dograph = dograph_default
+    showmax = showmax_default
+
+    for o, a in opts:
+        if o in ("-u", "--up-to"):
+            upto = int(a)
+        elif o in ("-g", "--graph"):
+            dograph = True
+        elif o in ("-s", "--show-max"):
+            showmax = int(a)
+        #End if
+    #End for
+
+    if len(args) != 1:
+        print(usage)
+        return 6 #Wrong number of arguments
+    else:
+        inputfile_name = args[0]
+    #End if
+
+    analyze_text(open(inputfile_name, "r").read(), upto, dograph, showmax)
 
     return 0
 #End def
