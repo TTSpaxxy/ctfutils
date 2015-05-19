@@ -42,9 +42,10 @@ longdesc = """Options:
 upto_default = 3 #By default analyzes up to trigrams
 dograph_default = False #Doesn't graph the output by default
 showmax_default = 5 #The highest number of occurances per n-gram to show in display
+analyzewords_default = False #Doesn't analyze complete words by default
 
-shortopt = "u:gs:"
-longopt = ["up-to=", "graph", "show-max="]
+shortopt = "u:gs:w"
+longopt = ["up-to=", "graph", "show-max=", "analyze-words"]
 
 sizes = {1:"mono", 2:"bi", 3:"tri"} #Most common analysis sizes
 
@@ -70,6 +71,19 @@ Get a dictionary of the occurrences of all possible n-grams in a list of words
     return result
 #End def
 
+def analyze_words(words):
+    """
+Get a dictionary of the occurrences of all words in the text
+    """
+    result = {}
+    for word in words:
+        if word not in result: result[word] = 1
+        else: result[word] += 1
+    #End for
+
+    return result
+#End def
+
 def analyze_upto(words, maxsize):
     """
 Analyze all n-grams in a list of words up to the specified maximum size
@@ -83,7 +97,26 @@ Analyze all n-grams in a list of words up to the specified maximum size
     return results
 #End def
 
-def analyze_text(inputtext, upto = upto_default, dograph = dograph_default, showmax = showmax_default):
+def sort_results(results_dict):
+    sorted_list = [result for result in results_dict.iteritems()]
+    sorted_list.sort(key = lambda x: x[0])
+    sorted_list.sort(key = lambda x: x[1])
+    sorted_list.reverse()
+
+    return sorted_list
+#End def
+
+def scale_results(sorted_results):
+    divisor = math.ceil(float(sorted_results[0][1]) / 25)
+    scaled_list = []
+    for k, v in sorted_results:
+        scaled_list.append(int(math.ceil(float(v) / divisor))) #Otherwise, the resulting graph might take up multiple lines (25 is a guess for terminal width)
+    #End for
+
+    return scaled_list
+#End def
+
+def analyze_text(inputtext, upto = upto_default, dograph = dograph_default, showmax = showmax_default, analyzewords = analyzewords_default):
     """
 Analyze a file of ciphertext and print the results
     """
@@ -96,7 +129,7 @@ Analyze a file of ciphertext and print the results
 
     format_str = graph_format_str if dograph else text_format_str #Output format
     print("-"*50)
-
+    
     for i in range(0, len(results)): #Print the results
         size = i + 1
 
@@ -106,16 +139,8 @@ Analyze a file of ciphertext and print the results
             title = str(size) + "-gram"
         #End if
 
-        sorted_list = [x for x in results[i].iteritems()] #Create a list of tuples (Easier to manipulate)
-        sorted_list.sort(key=lambda x: x[0]) #Sort it according to key
-        sorted_list.sort(key=lambda x: x[1]) #Then sort it according to value
-        sorted_list.reverse()
-
-        divisor = math.ceil(float(sorted_list[0][1]) / 25)
-        scaled_list = []
-        for k, v in sorted_list:
-            scaled_list.append(int(math.ceil(float(v) / divisor))) #Otherwise, the resulting graph might take up multiple lines (25 is a guess for terminal width)
-        #End for
+        sorted_list = sort_results(results[i])
+        scaled_list = scale_results(sorted_list)
 
         print("")
         print("Results of the {} analysis".format(title))
@@ -136,6 +161,31 @@ Analyze a file of ciphertext and print the results
         print("")
         print("-"*50)
     #End for
+
+    if analyzewords is True:
+        word_results = analyze_words(words_stripped)
+        sorted_words = sort_results(word_results)
+        scaled_words = scale_results(sorted_words)
+
+        print("")
+        print("Results of the word analysis")
+        print("")
+
+        list_len = len(word_results)
+
+        for i in range(0, min(list_len, showmax)) + [-1] + range(list_len - showmax, list_len): #First n results plus last n results
+
+            if i == -1: #Break in between first and last
+                print("...")
+                continue
+            #End if
+
+            print(format_str.format(sorted_words[i], "[]" * scaled_words[i], "" if scaled_words[i] == 1 else "s"))
+        #End for
+
+        print("")
+        print("-"*50)
+    #End if
 #End def
 
 def f(arg_list):
@@ -153,6 +203,7 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
     upto = upto_default
     dograph = dograph_default
     showmax = showmax_default
+    analyzewords = analyzewords_default
 
     for o, a in opts:
         if o in ("-u", "--up-to"):
@@ -161,6 +212,8 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
             dograph = True
         elif o in ("-s", "--show-max"):
             showmax = int(a)
+        elif o in ("-w", "--analyze-words"):
+            analyzewords = True
         #End if
     #End for
 
@@ -171,7 +224,7 @@ Frequency analysis - Analyzes an input file of ciphertext and graphs the frequen
         inputfile_name = args[0]
     #End if
 
-    analyze_text(open(inputfile_name, "r").read(), upto, dograph, showmax)
+    analyze_text(open(inputfile_name, "r").read(), upto, dograph, showmax, analyzewords)
 
     return 0
 #End def
